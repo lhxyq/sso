@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Created by LH 2446059046@qq.com on 2017/6/22.
@@ -24,7 +25,7 @@ public class Login extends HttpServlet{
 
         if ("lh".equals(username) && "lh".equals(pass)) {
             session.setAttribute("isLogin", true);
-            resp.sendRedirect("index.jsp");
+            session.setAttribute("token", UUID.randomUUID().toString());
         } else {
             resp.sendRedirect("login.jsp");
         }

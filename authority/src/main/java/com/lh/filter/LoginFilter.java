@@ -19,7 +19,7 @@ public class LoginFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        HttpSession session =  request.getSession();
+        HttpSession session = request.getSession();
 
         boolean isExcluded = false;
         if (null != excluded && 0 < excluded.length) {
@@ -29,12 +29,20 @@ public class LoginFilter implements Filter {
             }
         }
 
-        boolean isLogin = session.getAttribute("isLogin") != null && (Boolean) session.getAttribute("isLogin");
-
-        if (isLogin || isExcluded)
+        if (isExcluded)
             filterChain.doFilter(servletRequest, servletResponse);
-        else
+
+        boolean isLogin = session.getAttribute("isLogin") != null && (Boolean) session.getAttribute("isLogin");
+        if (isLogin) {
+            String token = (String) session.getAttribute("token");
+            String reUrl = (String)session.getAttribute("reUrl");
+
+            response.sendRedirect(reUrl + "?token=" + token);
+        } else {
+            session.setAttribute("reUrl", request.getParameter("reUrl"));
             request.getRequestDispatcher("login.jsp").forward(request, response);
+        }
+
     }
 
     public void destroy() {

@@ -23,8 +23,16 @@ public class LoginFilter  implements Filter{
 
         if (isLogin)
             filterChain.doFilter(servletRequest, servletResponse);
-        else
-            response.sendRedirect("http://localhost:8080/user/");
+
+        String token = request.getParameter("token");
+        if (null == token) {
+            String reUrl = "http://localhost:8081/sys001";
+            response.sendRedirect("http://localhost:8080/user/test?reUrl=" + reUrl);
+        } else {
+            //验证token
+            
+        }
+
     }
 
     public void destroy() {
