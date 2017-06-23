@@ -1,5 +1,12 @@
 package com.lh.filter;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,10 +27,35 @@ public class LoginFilter implements Filter {
         HttpSession session = request.getSession();
 
         boolean isLogion = session.getAttribute("isLogin") != null && (Boolean) session.getAttribute("isLogin");
-        if (isLogion)
+        if (isLogion) {
             filterChain.doFilter(request, response);
-        else
-            response.sendRedirect("http://localhost:8080/user/");
+            return;
+        }
+
+        String token = (String) request.getParameter("token");
+        if (null == token) {
+            String reUrl = "http://localhost:8082/sys002";
+            response.sendRedirect("http://localhost:8080/user/index?reUrl=" + reUrl);
+        } else {
+            //验证token
+            CloseableHttpClient httpClient = null;
+            CloseableHttpResponse httpResponse = null;
+
+            httpClient = HttpClients.createDefault();
+            HttpGet httpGet = new HttpGet("http://localhost:8080/user/verify?token=" + token);
+            httpResponse = httpClient.execute(httpGet);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            String result = EntityUtils.toString(httpEntity);
+
+            if ("true".equals(result)) {
+                session.setAttribute("isLogin", true);
+                filterChain.doFilter(servletRequest, servletResponse);
+                return;
+            } else {
+                System.out.println("verity fail...");
+                return;
+            }
+        }
     }
 
     public void destroy() {

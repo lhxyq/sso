@@ -22,15 +22,27 @@ public class LoginFilter implements Filter {
         HttpSession session = request.getSession();
 
         boolean isExcluded = false;
+        boolean isVerify = false;
         if (null != excluded && 0 < excluded.length) {
             for (String s : excluded) {
                 if (request.getRequestURI().equals(s))
                     isExcluded = true;
+
+                if (request.getRequestURI().equals("/user/verify"))
+                    isVerify =true;
             }
         }
 
-        if (isExcluded)
-            filterChain.doFilter(servletRequest, servletResponse);
+        if (isExcluded) {
+            if (isVerify) {
+                filterChain.doFilter(servletRequest, servletResponse);
+                return;
+            } else {
+                filterChain.doFilter(servletRequest, servletResponse);
+            }
+        } else {
+            session.setAttribute("reUrl", request.getParameter("reUrl"));
+        }
 
         boolean isLogin = session.getAttribute("isLogin") != null && (Boolean) session.getAttribute("isLogin");
         if (isLogin) {
@@ -39,7 +51,6 @@ public class LoginFilter implements Filter {
 
             response.sendRedirect(reUrl + "?token=" + token);
         } else {
-            session.setAttribute("reUrl", request.getParameter("reUrl"));
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
 
